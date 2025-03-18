@@ -3,14 +3,12 @@ import { useNavigate } from "react-router-dom";
 import { MdLogout } from "react-icons/md";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
-import QRCode from "qrcode"; // QR kod kutubxonasini import qilish
 
 const Dashboard = () => {
   const [user, setUser ] = useState(null);
   const [kpiData, setKpiData] = useState([]);
   const navigate = useNavigate();
   const pdfRef = useRef();
-  const qrCodeCanvasRef = useRef(); // QR kod uchun canvas ref
 
   const API_TOKEN = "XfN0oSyqlI-TlVKMDNDUvOKIBCrBUV3L";
   const API_URL = "http://localhost:8055/items/kpi_cards";
@@ -40,57 +38,17 @@ const Dashboard = () => {
     navigate("/login");
   };
 
-  const generateQRCode = async () => {
-    if (user) {
-      const canvas = qrCodeCanvasRef.current;
-      const qrCodeDataUrl = await QRCode.toDataURL(window.location.href, { // Sahifaning URL manzilini olish
-        width: 128,
-        margin: 1,
-      });
-      const img = new Image();
-      img.src = qrCodeDataUrl;
-      img.onload = () => {
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-      };
-    }
-  };
-
   const exportToPDF = () => {
     const input = pdfRef.current;
-    const qrCodeCanvas = qrCodeCanvasRef.current;
-
-    // QR kod canvasini olish
-    const qrCodePromise = html2canvas(qrCodeCanvas, { scale: 2 }).then((canvas) => {
-      return canvas.toDataURL("image/png");
-    });
-
-    // Asosiy kontentni olish
-    const pdfContentPromise = html2canvas(input, { scale: 2 }).then((canvas) => {
+    html2canvas(input, { scale: 2 }).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF({ orientation: "landscape", unit: "mm", format: "a4" });
       const imgWidth = 297;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
-
-      // Asosiy kontent rasmni qo'shish
       pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-
-      // QR kod rasmni qo'shish
-      return qrCodePromise.then((qrCodeImgData) => {
-        pdf.addImage(qrCodeImgData, "PNG", 10, imgHeight + 10, 50, 50); // Pozitsiya va o'lchamni moslashtirish
-        pdf.save("KPI_Report.pdf");
-      });
-    });
-
-    // Ikkita va'dani bajarish
-    Promise.all([qrCodePromise, pdfContentPromise]).then(() => {
-      console.log("PDF muvaffaqiyatli yaratildi!");
+      pdf.save("KPI_Report.pdf");
     });
   };
-
-  useEffect(() => {
-    generateQRCode(); // Foydalanuvchi ma'lumotlari mavjud bo'lganda QR kodni yaratish
-  }, [user]);
 
   return (
     <div className="p-6">
@@ -115,9 +73,6 @@ const Dashboard = () => {
           </button>
 
           <div ref={pdfRef} className="bg-white p-4 shadow-lg">
-            {/* QR kod uchun kvadrat canvas */}
-            <canvas ref={qrCodeCanvasRef} width={128} height={128} className="absolute top-25 right-12 mb-4" />
-
             <table className="min-w-[30%] border-collapse border border-black mb-4">
               <tbody className="text-[.6rem]">
                 <tr>
@@ -161,23 +116,23 @@ const Dashboard = () => {
                   <thead className="bg-gray-100 h-12">
                     <tr>
                       <th className="border border-black px-1 py-1" rowSpan={2}>T/R</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Мaqsad</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>KPI nomi</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Xisoblash metodikasi</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Ma'lumotlar manbai</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>O'lchov birligi</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Reja</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Maqsadning haqiqiy miqdori</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Salmog'i kutilayotgan</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Salmog'i real</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Izoh</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Baholovchi</th>
-                      <th className="border border-black px-1 py-1" rowSpan={2}>Baholovchi F.I.O</th>
-                      <th className="border border-black px-1 py-1" colSpan={2}>Tasdiqlanganlik statusi</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Мақсад</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>KPI номи</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Ҳисоблаш методикаси</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Маълумотлар манбаи</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Ўлчов бирлиги</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Режа</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Мақсаднинг ҳақиқий миқдори</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Салмоғи кутилаётган</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Салмоғи реал</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Изоҳ</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Баҳоловчи</th>
+                      <th className="border border-black px-1 py-1" rowSpan={2}>Баҳоловчи Ф.И.О</th>
+                      <th className="border border-black px-1 py-1" colSpan={2}>Тасдиқланганлик статуси</th>
                     </tr>
                     <tr>
-                      <th className="border border-black px-1 py-1">1-bosqich reja bo'yicha</th>
-                      <th className="border border-black px-1 py-1">2-bosqich salmoq bo'yicha</th>
+                      <th className="border border-black px-1 py-1">1-Босқич Режа бўйича</th>
+                      <th className="border border-black px-1 py-1">2-Босқич Салмоқ бўйича</th>
                     </tr>
                   </thead>
                   <tbody>

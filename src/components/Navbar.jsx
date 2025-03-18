@@ -47,6 +47,7 @@ const Navbar = () => {
                             <li><a href="/reports" className="text-white hover:text-gray-400">Hisobotlar</a></li>
                             <li><a href="/analytics" className="text-white hover:text-gray-400">Tahlillar</a></li>
                             <li><a href="/settings" className="text-white hover:text-gray-400">Sozlamalar</a></li>
+                            <li><a href="/qrcode" className="text-white hover:text-gray-400">Qr code</a></li>
                         </ul>
                     </div>
                 )}

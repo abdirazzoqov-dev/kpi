@@ -5,6 +5,8 @@ import Login from "./components/Login";
 import Dashboard from "./components/Dashboard";
 import TableComponent from "./components/TableComponent";
 import ProtectedRoute from "./components/ProtectedRoute";
+import Report from "./components/Report";
+import QRCodeGenerator from "./components/QRCodeGenerator";
 
 function App() {
     const [user, setUser] = useState(null);
@@ -38,6 +40,8 @@ function AppContent({ user, setUser }) {
                     <Route path="/dashboard" element={<ProtectedRoute element={<Dashboard />} />} />
                     <Route path="/login" element={<Login setUser={setUser} />} />
                     <Route path="/kpi" element={<ProtectedRoute element={<TableComponent />} />} />
+                    <Route path="/reports" element={<ProtectedRoute element={<Report /> } />} />
+                    <Route path="/qrcode" element={<ProtectedRoute element={<QRCodeGenerator /> } />} />
                 </Routes>
             </div>
         </>

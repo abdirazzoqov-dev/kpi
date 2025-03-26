@@ -10,8 +10,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const pdfRef = useRef();
 
-  const API_TOKEN = "XfN0oSyqlI-TlVKMDNDUvOKIBCrBUV3L";
-  const API_URL = "http://localhost:8055/items/kpi_cards";
+  const API_TOKEN = "NPBbA2Xa7OM7Be0_qOxncvD1aAvVrnRv";
+  const API_URL = "http://localhost:8055/items/kpi_karta";
 
   useEffect(() => {
     const storedUser  = JSON.parse(localStorage.getItem("user"));

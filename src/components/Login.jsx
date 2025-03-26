@@ -10,7 +10,7 @@ const Login = ({ setUser }) => {
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
-    const API_TOKEN = "XfN0oSyqlI-TlVKMDNDUvOKIBCrBUV3L";
+    const API_TOKEN = "Eo4nk4PK0NnvFqG1HWUtGDM-WK6r0jci";
     const API_URL = "http://localhost:8055/items/xodimlar";
 
     const handleLogin = async (e) => {
@@ -19,13 +19,18 @@ const Login = ({ setUser }) => {
         try {
             console.log("✅ Login so‘rovi yuborilmoqda...");
 
-            const response = await fetch(`${API_URL}?filter[login][_eq]=${login}`, {
+            const response = await fetch(`${API_URL}?filter[login][_eq]=${encodeURIComponent(login)}`, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${API_TOKEN}`,
+                    "Authorization": `Bearer ${API_TOKEN}`,
                 },
             });
+
+            if (!response.ok) {
+                setError("❌ Serverdan javob olishda xatolik!");
+                return;
+            }
 
             const data = await response.json();
             console.log("🔍 API javobi:", data);

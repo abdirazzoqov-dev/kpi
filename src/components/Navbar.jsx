@@ -10,8 +10,8 @@ const Navbar = () => {
     const navigate = useNavigate();
 
     // Directus API token
-    const API_TOKEN = "XfN0oSyqlI-TlVKMDNDUvOKIBCrBUV3L";
-    const API_URL = "http://localhost:8055/items/xodimlar";
+    const API_TOKEN = "NPBbA2Xa7OM7Be0_qOxncvD1aAvVrnRv";
+    const API_URL = "http://192.168.96.89:8055/items/xodimlar";
 
     useEffect(() => {
         // LocalStorage'dan foydalanuvchini olish

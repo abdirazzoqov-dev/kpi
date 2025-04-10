@@ -15,8 +15,8 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const pdfRef = useRef();
 
-  const API_TOKEN = "Eo4nk4PK0NnvFqG1HWUtGDM-WK6r0jci";
-  const API_URL = "http://localhost:8055/items/kpi_cards";
+  const API_TOKEN = "RxwHPPmY2lOJhRBhm2Ex1eMfMQHc5Dgy";
+  const API_URL = "http://192.168.96.89:8055/items/kpi_karta";
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -26,13 +26,17 @@ const Dashboard = () => {
     }
     setUser(storedUser);
 
-    fetch(`${API_URL}?filter[xodim_id][_eq]=${storedUser.id}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${API_TOKEN}`,
-      },
-    })
+    // Filter qo'shilgan holda fetch so'rovi
+    fetch(
+      `${API_URL}?filter[xodim_id][_eq]=${storedUser.id}&fields=*,birinchi_bosqich_sana,ikkinchi_bosqich_sana`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${API_TOKEN}`,
+        },
+      }
+    )
       .then((response) => response.json())
       .then((data) => {
         setKpiData(data.data || []);
@@ -41,8 +45,7 @@ const Dashboard = () => {
   }, [navigate]);
 
   useEffect(() => {
-    const today = new Date();
-    const filteredData = kpiData.filter(kpi => {
+    const filteredData = kpiData.filter((kpi) => {
       const firstStageDate = new Date(kpi.birinchi_bosqich_sana);
       const secondStageDate = new Date(kpi.ikkinchi_bosqich_sana);
       return (
@@ -60,11 +63,10 @@ const Dashboard = () => {
 
   const exportToPDF = () => {
     const input = pdfRef.current;
-
     const originalBoxShadow = input.style.boxShadow;
     const originalBorder = input.style.border;
-    input.style.boxShadow = 'none';
-    input.style.border = 'none';
+    input.style.boxShadow = "none";
+    input.style.border = "none";
 
     const pdfContentPromise = html2canvas(input, { scale: 1.2, backgroundColor: null }).then((canvas) => {
       const imgData = canvas.toDataURL("image/png");
@@ -73,7 +75,7 @@ const Dashboard = () => {
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
-      pdf.save("KPI_Report.pdf");
+      pdf.save("KPI_Karta.pdf");
 
       input.style.boxShadow = originalBoxShadow;
       input.style.border = originalBorder;
@@ -85,32 +87,47 @@ const Dashboard = () => {
   };
 
   const downloadFile = (fileId) => {
-    const url = `http://localhost:8055/assets/${fileId}`;
-    const link = document.createElement('a');
+    const url = `http://192.168.96.89:8055/assets/${fileId}`;
+    const link = document.createElement("a");
     link.href = url;
-    link.setAttribute('download', 'malumotnoma');
+    link.setAttribute("download", "malumotnoma");
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
+  // Umumiy salmoqlarni hisoblash
+  const totalExpectedWeight = filteredKpiData.reduce(
+    (sum, kpi) => sum + (parseFloat(kpi.salmoq_kutilayotgan) || 0),
+    0
+  );
+  const totalRealWeight = filteredKpiData.reduce(
+    (sum, kpi) => sum + (parseFloat(kpi.salmoq_real) || 0),
+    0
+  );
+
+  // Oxirgi tasdiqlash sanalarini olish
+  const lastKpi = filteredKpiData[filteredKpiData.length - 1] || {};
+
   return (
     <div className="p-6">
       {user ? (
         <>
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold">{user.xodim[0] || "Bo'sh"}</h1>
+          <div className="flex justify-between items-center px-4">
+            <h1 className="text-2xl font-bold text-cyan-800">KPI karta ma'lumotlari / {user.xodim[0] || "Bo'sh"}</h1>
             <button
               onClick={handleLogout}
               className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 transition-all"
             >
-              <MdLogout />
+             <div className="flex items-center justify-center gap-x-4">
+             <span>Tizimdan chiqish</span> <MdLogout className="text-2xl" />
+             </div>
             </button>
           </div>
 
           <br />
 
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between px-4">
             <button
               onClick={exportToPDF}
               className="bg-blue-500 text-white px-4 py-2 rounded-md mb-4 hover:bg-blue-600 transition-all"
@@ -118,6 +135,10 @@ const Dashboard = () => {
               PDF'ga yuklab olish
             </button>
 
+            <div className="border px-14 py-2">
+              <span className="">KPI karta ma'lumotlarini izlash</span>
+              <br />
+              <br />
             <div className="flex items-center mb-4">
               <label className="mr-2 font-semibold">Oy:</label>
               <select
@@ -125,7 +146,7 @@ const Dashboard = () => {
                 onChange={(e) => setSelectedMonth(Number(e.target.value))}
                 className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
               >
-                {[...Array(12).keys()].map(month => (
+                {[...Array(12).keys()].map((month) => (
                   <option key={month} value={month + 1}>
                     {month + 1}
                   </option>
@@ -138,16 +159,19 @@ const Dashboard = () => {
                 onChange={(e) => setSelectedYear(Number(e.target.value))}
                 className="border border-gray-300 rounded-md p-2 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200"
               >
-                {[2020, 2021, 2022, 2023, 2024, 2025].map(year => (
+                {[2020, 2021, 2022, 2023, 2024, 2025].map((year) => (
                   <option key={year} value={year}>
                     {year}
                   </option>
                 ))}
               </select>
             </div>
+            </div>
+
+
           </div>
 
-          <div ref={pdfRef} className="bg-white p-4 shadow-lg">
+          <div ref={pdfRef} className="bg-white p-4">
             <div className="flex items-center justify-between">
               <table className="min-w-[33%] border-collapse border border-black mb-4">
                 <tbody className="text-[.8rem]">
@@ -171,22 +195,8 @@ const Dashboard = () => {
                     <td className="border border-black px-2 py-2 font-bold">Ma’muriy rahbar F.I.SH.</td>
                     <td className="border border-black px-2 py-2">{user.mamuriy_raxbar[0] || ""}</td>
                   </tr>
-                  {/* <tr>
-                  <td className="border border-black px-2 py-2 font-bold">1-Bosqich.Xodim imzosi</td>
-                  <td className="border border-black px-2 py-2">{user.birinchi_bosqich_imzo ? user.birinchi_bosqich_imzo.replace("T", " ") : ""}</td>
-                </tr>
-                <tr>
-                  <td className="border border-black px-2 py-2 font-bold">2-Bosqich.Xodim imzosi</td>
-                  <td className="border border-black px-2 py-2">{user.ikkinchi_bosqich_imzo ? user.ikkinchi_bosqich_imzo.replace("T", " ") : ""}</td>
-                </tr> */}
                 </tbody>
               </table>
-              {/* <div>
-                <div className="flex items-center justify-between gap-x-[30rem]">
-                  <div>Xodim imzosi _____________________  <span>{user.birinchi_bosqich_imzo ? user.birinchi_bosqich_imzo.replace("T", " ") : ""}</span></div>
-                  <div>Rahbar imzosi _____________________</div>
-                </div>
-              </div> */}
             </div>
 
             <div>
@@ -206,11 +216,11 @@ const Dashboard = () => {
                       <th className="border border-black px-1 py-1 bg-blue-200" rowSpan={2}>Salmog'i real</th>
                       <th className="border border-black px-1 py-1 bg-blue-200" rowSpan={2}>Baholovchi</th>
                       <th className="border border-black px-1 py-1 bg-blue-200" rowSpan={2}>Ma'lumotnoma</th>
-                      <th className="border border-black px-1 py-1 bg-blue-200" colSpan={2}>Tasdiqlanganlik statusi</th>
+                      <th className="border border-black px-1 py-4 bg-blue-200" colSpan={2}>Tasdiqlanganlik statusi</th>
                     </tr>
                     <tr>
-                      <th className="border border-black px-1 py-1 bg-blue-200">1-bosqich reja bo'yicha</th>
-                      <th className="border border-black px-1 py-1 bg-blue-200">2-bosqich salmoq bo'yicha</th>
+                      <th className="border border-black px-1 py-2 bg-blue-200">1-bosqich reja bo'yicha</th>
+                      <th className="border border-black px-1 py-2 bg-blue-200">2-bosqich salmoq bo'yicha</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -232,7 +242,7 @@ const Dashboard = () => {
                             <TiFolderOpen className="text-3xl" />
                           </button>
                         </td>
-                        <td className="border border-black px-2 py-1 text-center">
+                        <td className="border border-black px-2 py-4 text-center">
                           <div className="flex flex-col items-center">
                             <LiaCheckCircle className="text-4xl text-blue-500" />
                             <div className="border-b border-gray-400 w-full my-1"></div>
@@ -260,6 +270,35 @@ const Dashboard = () => {
                         </td>
                       </tr>
                     ))}
+                    <tr className="bg-blue-200 font-bold">
+                      <td className="border border-black px-2 py-4 text-center text-xl" colSpan={2}>Umumiy miqdor</td>
+                      <td className="border border-black px-2 py-4 text-center text-xl" colSpan={6}>Operatsion samaradorlik xizmati</td>
+                      <td className="border border-black px-2 py-4 text-center text-lg">{totalExpectedWeight} %</td>
+                      <td className="border border-black px-2 py-4 text-center text-lg">{totalRealWeight} %</td>
+                      <td className="border border-black px-2 py-4 text-center" colSpan={2}></td>
+                      <td className="border border-black px-2 py-4 text-center" colSpan={1}>
+                        {/* <div className="flex flex-col items-center">
+                          <span className="font-bold">
+                            {lastKpi.tasdiq_sana_1 ? (
+                              new Date(lastKpi.tasdiq_sana_1).toLocaleDateString()
+                            ) : (
+                              "Mavjud emas"
+                            )}
+                          </span>
+                        </div> */}
+                      </td>
+                      <td className="border border-black px-2 py-4 text-center" colSpan={1}>
+                        {/* <div className="flex flex-col items-center">
+                          <span className="font-bold">
+                            {lastKpi.tasdiq_sana_2 ? (
+                              new Date(lastKpi.tasdiq_sana_2).toLocaleDateString()
+                            ) : (
+                              "Mavjud emas"
+                            )}
+                          </span>
+                        </div> */}
+                      </td>
+                    </tr>
                   </tbody>
                 </table>
               ) : (
